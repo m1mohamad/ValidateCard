@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+import os
 
 app = Flask(__name__)
 
@@ -19,6 +20,10 @@ def is_valid_credit_card(card_number):
 
 @app.route('/api/validate/<string:card_number>', methods=['GET'])
 def validate_credit_card(card_number):
+    card_number = os.environ.get('CREDIT_CARD_NUMBER', card_number)
+    if not card_number:
+        return jsonify(error="Credit card number not provided"), 400
+    
     if not card_number.isdigit():
         return jsonify(error="Credit card number must be numeric"), 400
     
