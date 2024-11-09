@@ -1,33 +1,50 @@
-name: Credit Card Validator
-
+name: CI
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
+    branches:
+      - main
 jobs:
-
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
-
+    container:
+      image: python:3.9
+    services:
+      flask-app:
+        image: python:3.9
+        options: >-
+          --health-cmd "curl -f http://localhost:5000/health || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set hostname
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Install dependencies
       run: |
-        echo "127.0.0.1 ValidateCard.local" | sudo tee -a /etc/hosts
+        python3.9 -m pip install --upgrade pip
+        pip install -r requirements.txt
+    - name: Start Flask application
+      run: |
+        python3.9 -m app.app &
 
-    - name: Build and run Docker Compose
+    - name: Check Flask application health
       run: |
-        docker-compose up -d --build
-
-    - name: Check application health
+          python3.9 -c "
+          import os
+          from app.app import app
+          client = app.test_client()
+          response = client.get('/health')
+          assert response.status_code == 200
+          assert response.json['status'] == 'OK'
+          "
+    - name: Run unit tests
       run: |
-        sleep 5
-        curl --fail http://ValidateCard.local:5000/api/validate/1234567890123456
-
-    - name: Open application URL
+        python3.9 -m unittest discover -s . -p "test_*.py"
+    - name: Create build directory
       run: |
-        open http://ValidateCard.local:5000/api/validate/1234567890123456
-      if: success()
+        mkdir -p build
+        - name: Upload build artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-output
+          path: build/

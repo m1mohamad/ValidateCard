@@ -48,8 +48,20 @@ pip install -r requirements.txt
      ```curl https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash```
 
 2. Run the pipeline:
-
+    
+   ``` act  push ```
     ``` act push --secret-file .secrets --env-file .env ```
+
+##Deploying with Docker-compose
+
+    Use the script deploy.sh 
+
+    Run ```docker-compose ps```
+
+    Run ```docker exec -it validatecard-app-1 /bin/bash```
+
+    Run : ```curl http://localhost:5000/api/validate/4111111111111111```
+
 
 ## Deploying with Docker
 
@@ -64,6 +76,22 @@ pip install -r requirements.txt
 3. Access the credit card validation endpoint:
 
     ```http://localhost:5000/api/validate```
+
+    Examples : 
+        Valid credit card numbers:
+
+        http://127.0.0.1:5000/api/validate/4111111111111111
+        http://127.0.0.1:5000/api/validate/5500000000000004
+
+        Invalid credit card numbers:
+
+        http://127.0.0.1:5000/api/validate/4111111111111112
+        http://127.0.0.1:5000/api/validate/5500000000000005
+
+        Non-numeric credit card numbers:
+
+        http://127.0.0.1:5000/api/validate/abc123
+        http://127.0.0.1:5000/api/validate/1234-5678-9012-3456
 
 ## API Endpoint
 
